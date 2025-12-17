@@ -1,77 +1,53 @@
-# Deployment Guide
+# Nexus CRM Deployment Guide
 
-This CRM application is built with **Vite** and **React**. It is a static single-page application (SPA), making it easy to deploy to any static hosting provider.
+This project consists of two main parts:
+1.  **Frontend:** React (Vite) Single Page Application.
+2.  **Backend:** Node.js (Express) Server with Prisma (SQLite).
 
-## Prerequisites
-- Node.js installed (v18+ recommended)
-- Git installed
-- A GitHub/GitLab/Bitbucket repository (recommended for CI/CD)
-
-## Local Build
-Before deploying, it's good practice to verify the build locally.
-
-```bash
-# Install dependencies
-npm install
-
-# Run the build
-npm run build
-
-# Preview the production build locally
-npm run preview
-```
-
-The build output will be in the `dist/` directory.
+To get the full application working in production (like Vercel), you must deploy **both** parts correctly.
 
 ---
 
-## Deploy to Vercel (Recommended)
-Vercel is the easiest way to deploy Vite apps.
+## 1. Frontend Deployment (Vercel / Netlify)
+The frontend is already configured for easy deployment to Vercel.
 
-### Option A: Via Dashboard (easiest)
-1. Push your code to a git repository (GitHub, GitLab, etc.).
-2. Go to [Vercel](https://vercel.com) and sign up/login.
-3. Click **"Add New Project"** and select **"Import"** next to your repository.
-4. Vercel will automatically detect **Vite**.
-   - **Framework Preset**: Vite
-   - **Build Command**: `vite build` (or `npm run build`)
-   - **Output Directory**: `dist`
-5. Click **Deploy**.
-
-### Option B: Via CLI
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in the project root.
-3. Follow the prompts.
+### Step-by-Step (Vercel):
+1.  Import your GitHub repository to Vercel.
+2.  **Crucial:** Add an Environment Variable:
+    -   **Key:** `VITE_API_BASE_URL`
+    -   **Value:** `https://your-backend-api.com/api` (You will get this after deploying the backend).
+3.  Vercel will build and host your UI.
 
 ---
 
-## Deploy to Netlify
+## 2. Backend Deployment (Render / Railway / DigitalOcean)
+Vercel is primarily for static sites and serverless functions. It **cannot** run a persistent Node.js Express server or maintain a local SQLite database file.
 
-### Option A: Via Dashboard
-1. Push your code to a git repository.
-2. Go to [Netlify](https://www.netlify.com).
-3. Click **"Add new site"** -> **"Import an existing project"**.
-4. Connect your Git provider and select your repo.
-5. Netlify will detect the settings:
-   - **Build command**: `npm run build`
-   - **Publish directory**: `dist`
-6. Click **Deploy site**.
-
-### Option B: Via Drag & Drop
-1. Run `npm run build` locally.
-2. Drag the `dist` folder to the "drop zone" on the Netlify dashboard.
+### Recommended: Render.com
+1.  Sign up for [Render](https://render.com).
+2.  Create a **New Web Service**.
+3.  Connect your GitHub repo.
+4.  **Settings:**
+    -   **Root Directory:** `server`
+    -   **Build Command:** `npm install && npx prisma generate`
+    -   **Start Command:** `node src/index.js`
+5.  **Environment Variables:**
+    -   `DATABASE_URL`: `"file:./data/dev.db"` (Or see "Database Strategy" below).
+    -   `PORT`: `3000`
+    -   `SECRET_KEY`: A long random string.
 
 ---
 
-## Important Configuration
-Since this is a client-side router (SPA), you need to ensure the host redirects all 404s to `index.html`.
+## 3. Database Strategy for Production
+By default, the project uses **SQLite**. In production:
+-   **SQLite on Render:** You must add a **Disk** to your Web Service to make the database file persistent.
+-   **Recommended Strategy:** Use a hosted Database like **Supabase** (Postgres) or **Neon**.
+    -   Update the `provider` in `server/prisma/schema.prisma` from `sqlite` to `postgresql`.
+    -   Update your `DATABASE_URL` to point to your hosted database string.
 
-### Vercel
-Vercel handles this automatically for Vite.
+---
 
-### Netlify
-Create a `_redirects` file in the `public/` directory (or created during build) with the following content:
-```
-/*  /index.html  200
-```
-*(This is already handled if you use the automatic detection, but good to know)*.
+## 🛠️ Summary of Configuration Changes
+I have updated `src/api/client.js` to look for the `VITE_API_BASE_URL` environment variable. This ensures your frontend knows where to talk to the backend.
+
+**Common Issue:** If registration is "not working" on Vercel, check the Browser Console (F12). You likely see a "404" or "Connection Refused" because the UI is still trying to talk to `localhost:3000`.
