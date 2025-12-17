@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  name     String
+}
+
+model Contact {
+  id      Int    @id @default(autoincrement())
+  name    String
+  email   String
+  phone   String
+  company String
+  status  String // Active, Inactive, Lead
+  avatar  String // Color class, e.g. 'bg-emerald-500'
+}
+
+model Deal {
+  id      Int    @id @default(autoincrement())
+  title   String
+  value   Float
+  company String
+  stage   String // Lead, Outreach, Discussion, Proposal, Won
+}
+
+model Task {
+  id       Int    @id @default(autoincrement())
+  title    String
+  tag      String
+  priority String // Low, Medium, High
+  stage    String // To Do, In Progress, In Review, Done
+  color    String
+}
+
+model BacklogItem {
+  id     Int    @id @default(autoincrement())
+  title  String
+  type   String // Research, Legal, Performance, Marketing
+  points Int
+}
+
+model Invoice {
+  id     String @id // INV-001
+  client String
+  amount Float
+  date   String
+  status String // Paid, Pending, Overdue
+}

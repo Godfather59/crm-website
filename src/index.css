@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface-900 text-white font-['Outfit'] antialiased selection:bg-primary-40/30;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  /* Glassmorphism utility */
+  .glass-panel {
+    @apply bg-surface-800/40 backdrop-blur-xl border border-white/5 shadow-glass rounded-3xl;
+  }
+  
+  .glass-card {
+    @apply bg-gradient-card backdrop-blur-md border border-white/5 rounded-2xl hover:border-primary-40/50 transition-all duration-300;
+  }
+
+  .nav-item-active {
+    @apply bg-primary-40/20 text-primary-80;
+  }
+}
