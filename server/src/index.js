@@ -1,3 +1,5 @@
+const https = require('https');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
@@ -6,12 +8,30 @@ const bcrypt = require('bcryptjs');
 
 const dotenv = require('dotenv');
 dotenv.config();
+
 const app = express();
+
+// Configure CORS properly
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = "my_super_secret_key"; // In prod, use env var
 
-app.use(cors());
+// SSL configuration
+const options = {
+    key: fs.readFileSync('../ssl/key.pem'),
+    cert: fs.readFileSync('../ssl/cert.pem')
+};
+
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'Nexus CRM API is running' });
+});
+
 app.use(express.json());
 
 // --- Middleware ---
@@ -269,6 +289,6 @@ app.delete('/api/invoices/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Deleted' });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+https.createServer(options, app).listen(PORT, () => {
+    console.log(`HTTPS Server running on port ${PORT}`);
 });
